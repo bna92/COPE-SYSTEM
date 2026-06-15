@@ -14,29 +14,66 @@ export const createEmployee = async (req: Request, res: Response) => {
   try {
     const {
       employee_code,
-      full_name,
+      first_name,
+      last_name,
+      curp,
+      rfc,
+      social_security_number,
+      birth_date,
+      gender,
+      marital_status,
+      address,
+      phone,
+      professional_license,
       profession,
       position,
       department,
       company,
-      birth_date,
       hire_date,
     } = req.body;
 
     const [result] = await db.query(
-      `INSERT INTO employees 
-      (employee_code, full_name, profession, position, department, company, birth_date, hire_date)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
+      `
+      INSERT INTO employees (
         employee_code,
-        full_name,
+        first_name,
+        last_name,
+        curp,
+        rfc,
+        social_security_number,
+        birth_date,
+        gender,
+        marital_status,
+        address,
+        phone,
+        professional_license,
         profession,
         position,
         department,
         company,
+        hire_date
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `,
+      [
+        employee_code,
+        first_name,
+        last_name,
+        curp,
+        rfc,
+        social_security_number,
         birth_date,
+        gender,
+        marital_status,
+        address,
+        phone,
+        professional_license,
+        profession,
+        position,
+        department,
+        company,
         hire_date,
-      ]
+      ],
     );
 
     res.status(201).json({
@@ -44,6 +81,11 @@ export const createEmployee = async (req: Request, res: Response) => {
       result,
     });
   } catch (error) {
-    res.status(500).json({ message: "Error al crear empleado", error });
+    console.error(error);
+
+    res.status(500).json({
+      message: "Error al crear empleado",
+      error,
+    });
   }
 };
