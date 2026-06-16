@@ -8,6 +8,7 @@ import relevantExperienceRoutes from "./routes/workExperience.routes";
 import workExperienceRoutes from "./routes/workExperience.routes"
 import workExperienceActivityRoutes from "./routes/workExperienceActivity.routes";
 import cvRoutes from "./routes/cv.routes";
+import cvPdfRoutes from "./routes/cvPdf.routes";
 
 const app = express();
 
@@ -22,5 +23,6 @@ app.use("/api/relevant-experience", relevantExperienceRoutes);
 app.use("/api/work-experience", workExperienceRoutes);
 app.use("/api/work-experience-activities", workExperienceActivityRoutes);
 app.use("/api", cvRoutes);
+app.use("/api", cvPdfRoutes);
 
 export default app;
