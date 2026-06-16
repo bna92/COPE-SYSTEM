@@ -357,6 +357,321 @@ export const importCopeInternalTraining = async (
   }
 };
 
+export const importCopeExternalTraining = async (
+  req: Request,
+  res: Response,
+) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        message: "No se recibió ningún archivo",
+      });
+    }
+
+    const workbook = xlsx.readFile(req.file.path);
+
+    const externalSheet = workbook.Sheets["CapacitacionExt"];
+
+    if (!externalSheet) {
+      return res.status(400).json({
+        message: "No se encontró la hoja CapacitacionExt",
+      });
+    }
+
+    const externalRows: any[] = xlsx.utils.sheet_to_json(externalSheet, {
+      defval: "",
+    });
+
+    let inserted = 0;
+    let skipped = 0;
+    const skippedRows: any[] = [];
+
+    for (const row of externalRows) {
+      const employeeCode = cleanText(row["ID Colaborador"]);
+      const courseName = cleanText(row["Nombre del curso"]);
+      const trainingProvider = cleanText(row["Agente Capacitador"]);
+
+      const rawDate = row["Fecha"];
+      const trainingDate =
+        typeof rawDate === "number"
+          ? excelDateToJSDate(rawDate)
+          : cleanText(rawDate);
+
+      if (!employeeCode || !courseName) {
+        skipped++;
+        skippedRows.push({
+          employeeCode,
+          courseName,
+          reason: "Datos incompletos",
+        });
+        continue;
+      }
+
+      const [employeeRows]: any = await db.query(
+        "SELECT id FROM employees WHERE employee_code = ?",
+        [employeeCode],
+      );
+
+      if (employeeRows.length === 0) {
+        skipped++;
+        skippedRows.push({
+          employeeCode,
+          courseName,
+          reason: "Empleado no encontrado",
+        });
+        continue;
+      }
+
+      const employeeId = employeeRows[0].id;
+
+      await db.query(
+        `
+        INSERT INTO external_training (
+          employee_id,
+          course_name,
+          training_provider,
+          training_date
+        )
+        VALUES (?, ?, ?, ?)
+        `,
+        [employeeId, courseName, trainingProvider, trainingDate],
+      );
+
+      inserted++;
+    }
+
+    res.json({
+      message: "Importación de capacitación externa completada",
+      totalRows: externalRows.length,
+      inserted,
+      skipped,
+      skippedRows,
+    });
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      message: "Error al importar capacitación externa del COPE",
+      error,
+    });
+  }
+};
+
+export const importCopeRelevantExperience = async (
+  req: Request,
+  res: Response,
+) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        message: "No se recibió ningún archivo",
+      });
+    }
+
+    const workbook = xlsx.readFile(req.file.path);
+
+    const relevantSheet = workbook.Sheets["ExpRelevante"];
+
+    if (!relevantSheet) {
+      return res.status(400).json({
+        message: "No se encontró la hoja ExpRelevante",
+      });
+    }
+
+    const relevantRows: any[] = xlsx.utils.sheet_to_json(relevantSheet, {
+      defval: "",
+    });
+
+    let inserted = 0;
+    let skipped = 0;
+    const skippedRows: any[] = [];
+
+    for (const row of relevantRows) {
+      const employeeCode = cleanText(row["ID Colaborador"]);
+
+      if (!employeeCode) {
+        skipped++;
+        skippedRows.push({
+          employeeCode,
+          reason: "ID Colaborador vacío",
+        });
+        continue;
+      }
+
+      const [employeeRows]: any = await db.query(
+        "SELECT id FROM employees WHERE employee_code = ?",
+        [employeeCode],
+      );
+
+      if (employeeRows.length === 0) {
+        skipped++;
+        skippedRows.push({
+          employeeCode,
+          reason: "Empleado no encontrado",
+        });
+        continue;
+      }
+
+      const employeeId = employeeRows[0].id;
+
+      for (let i = 1; i <= 5; i++) {
+        const description = cleanText(row[`Experiencia ${i}`]);
+
+        if (!description) {
+          continue;
+        }
+
+        await db.query(
+          `
+          INSERT INTO relevant_experience (
+            employee_id,
+            description,
+            order_number
+          )
+          VALUES (?, ?, ?)
+          `,
+          [employeeId, description, i],
+        );
+
+        inserted++;
+      }
+    }
+
+    res.json({
+      message: "Importación de experiencia relevante completada",
+      totalRows: relevantRows.length,
+      inserted,
+      skipped,
+      skippedRows,
+    });
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      message: "Error al importar experiencia relevante del COPE",
+      error,
+    });
+  }
+};
+
+export const importCopeWorkExperience = async (req: Request, res: Response) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        message: "No se recibió ningún archivo",
+      });
+    }
+
+    const workbook = xlsx.readFile(req.file.path);
+
+    const workSheet = workbook.Sheets["ExpLab"];
+
+    if (!workSheet) {
+      return res.status(400).json({
+        message: "No se encontró la hoja ExpLab",
+      });
+    }
+
+    const workRows: any[] = xlsx.utils.sheet_to_json(workSheet, {
+      defval: "",
+    });
+
+    let workInserted = 0;
+    let activitiesInserted = 0;
+    let skipped = 0;
+    const skippedRows: any[] = [];
+
+    for (const row of workRows) {
+      const employeeCode = cleanText(row["ID Empleado"]);
+      const period = cleanText(row["Periodo"]);
+      const company = cleanText(row["Empresa"]);
+      const position = cleanText(row["Puesto"]);
+
+      if (!employeeCode || !period || !company) {
+        skipped++;
+        skippedRows.push({
+          employeeCode,
+          period,
+          company,
+          reason: "Datos incompletos",
+        });
+        continue;
+      }
+
+      const [employeeRows]: any = await db.query(
+        "SELECT id FROM employees WHERE employee_code = ?",
+        [employeeCode],
+      );
+
+      if (employeeRows.length === 0) {
+        skipped++;
+        skippedRows.push({
+          employeeCode,
+          period,
+          company,
+          reason: "Empleado no encontrado",
+        });
+        continue;
+      }
+
+      const employeeId = employeeRows[0].id;
+
+      const [workResult]: any = await db.query(
+        `
+        INSERT INTO work_experience (
+          employee_id,
+          period,
+          company,
+          position
+        )
+        VALUES (?, ?, ?, ?)
+        `,
+        [employeeId, period, company, position],
+      );
+
+      const workExperienceId = workResult.insertId;
+      workInserted++;
+
+      for (let i = 1; i <= 7; i++) {
+        const activity = cleanText(row[`Act Principal ${i}`]);
+
+        if (!activity) {
+          continue;
+        }
+
+        await db.query(
+          `
+          INSERT INTO work_experience_activities (
+            work_experience_id,
+            activity,
+            order_number
+          )
+          VALUES (?, ?, ?)
+          `,
+          [workExperienceId, activity, i],
+        );
+
+        activitiesInserted++;
+      }
+    }
+
+    res.json({
+      message: "Importación de experiencia laboral completada",
+      totalRows: workRows.length,
+      workInserted,
+      activitiesInserted,
+      skipped,
+      skippedRows,
+    });
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      message: "Error al importar experiencia laboral del COPE",
+      error,
+    });
+  }
+};
 export const previewCopeSheet = async (req: Request, res: Response) => {
   try {
     if (!req.file) {
