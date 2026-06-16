@@ -17,7 +17,7 @@ export const createCourse = async (req: Request, res: Response) => {
     const [result] = await db.query(
       `INSERT INTO courses (course_code, course_name, course_revision)
        VALUES (?, ?, ?)`,
-      [course_code, course_name, course_revision]
+      [course_code, course_name, course_revision],
     );
 
     res.status(201).json({
@@ -28,3 +28,4 @@ export const createCourse = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Error al crear curso", error });
   }
 };
+
