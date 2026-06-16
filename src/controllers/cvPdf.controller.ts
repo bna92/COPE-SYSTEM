@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import PDFDocument from "pdfkit";
 import { db } from "../config/db";
+import { formatDate } from "../utils/formatDate";
 
 export const generateEmployeeCVPDF = async (req: Request, res: Response) => {
   try {
@@ -52,7 +53,10 @@ export const generateEmployeeCVPDF = async (req: Request, res: Response) => {
       work.activities = activities;
     }
 
-    const doc = new PDFDocument({ margin: 50 });
+    const doc = new PDFDocument({
+      size: "A4",
+      margin: 45,
+    });
 
     const fileName = `${employee.full_name.replace(/\s+/g, "_")}_CV.pdf`;
 
@@ -61,63 +65,112 @@ export const generateEmployeeCVPDF = async (req: Request, res: Response) => {
 
     doc.pipe(res);
 
-    doc.fontSize(20).text("Curriculum Vitae", { align: "center" });
+    const sectionTitle = (title: string) => {
+      doc.moveDown(0.8);
+      doc.fontSize(12).font("Helvetica-Bold").text(title.toUpperCase());
+      doc.moveTo(45, doc.y + 3).lineTo(550, doc.y + 3).stroke();
+      doc.moveDown(0.6);
+      doc.font("Helvetica").fontSize(10);
+    };
+
+    doc.fontSize(10).font("Helvetica-Bold").text("OIL TEST INTERNATIONAL MEXICO", {
+      align: "center",
+    });
+
+    doc.moveDown(0.3);
+
+    doc.fontSize(16).text("CURRICULUM VITAE", {
+      align: "center",
+    });
+
     doc.moveDown();
 
-    doc.fontSize(16).text(employee.full_name);
-    doc.fontSize(11).text(`ID: ${employee.employee_code}`);
-    doc.text(`Puesto: ${employee.position || ""}`);
+    doc.fontSize(14).font("Helvetica-Bold").text(employee.full_name, {
+      align: "center",
+    });
+
+    doc.fontSize(10).font("Helvetica").text(`ID Colaborador: ${employee.employee_code}`, {
+      align: "center",
+    });
+
+    sectionTitle("Datos Generales");
+
     doc.text(`Profesión: ${employee.profession || ""}`);
-    doc.text(`Empresa: ${employee.company || ""}`);
+    doc.text(`Puesto: ${employee.position || ""}`);
     doc.text(`Departamento: ${employee.department || ""}`);
-    doc.moveDown();
-
-    doc.fontSize(14).text("Datos Generales", { underline: true });
-    doc.fontSize(11);
+    doc.text(`Empresa: ${employee.company || ""}`);
+    doc.text(`Fecha de ingreso: ${formatDate(employee.hire_date)}`);
+    doc.text(`Fecha de nacimiento: ${formatDate(employee.birth_date)}`);
     doc.text(`CURP: ${employee.curp || ""}`);
     doc.text(`RFC: ${employee.rfc || ""}`);
     doc.text(`NSS: ${employee.social_security_number || ""}`);
-    doc.text(`Teléfono: ${employee.phone || ""}`);
-    doc.text(`Domicilio: ${employee.address || ""}`);
-    doc.moveDown();
+    doc.text(`Cédula profesional: ${employee.professional_license || ""}`);
 
-    doc.fontSize(14).text("Experiencia Relevante", { underline: true });
-    doc.fontSize(11);
-    relevantExperience.forEach((item: any) => {
-      doc.text(`• ${item.description}`);
-    });
-    doc.moveDown();
+    sectionTitle("Experiencia Relevante");
 
-    doc.fontSize(14).text("Capacitación Interna", { underline: true });
-    doc.fontSize(11);
-    internalTraining.forEach((item: any) => {
-      doc.text(
-        `• ${item.course_code || ""} - ${item.course_name || ""} | Fecha inicial: ${item.initial_date ? item.initial_date.toISOString().split("T")[0] : ""} | Refrendo: ${item.latest_renewal_date ? item.latest_renewal_date.toISOString().split("T")[0] : ""}`
-      );
-    });
-    doc.moveDown();
-
-    doc.fontSize(14).text("Capacitación Externa", { underline: true });
-    doc.fontSize(11);
-    externalTraining.forEach((item: any) => {
-      doc.text(
-        `• ${item.course_name} - ${item.training_provider || ""} (${item.training_date || ""})`
-      );
-    });
-    doc.moveDown();
-
-    doc.fontSize(14).text("Experiencia Laboral", { underline: true });
-    doc.fontSize(11);
-    workExperience.forEach((work: any) => {
-      doc.text(`${work.period || ""} | ${work.company || ""} | ${work.position || ""}`, {
-        continued: false,
+    if (relevantExperience.length === 0) {
+      doc.text("Sin información registrada.");
+    } else {
+      relevantExperience.forEach((item: any) => {
+        doc.text(`• ${item.description}`, {
+          indent: 10,
+          paragraphGap: 4,
+        });
       });
+    }
 
-      work.activities.forEach((act: any) => {
-        doc.text(`   - ${act.activity}`);
+    sectionTitle("Capacitación Interna / E-Learning");
+
+    if (internalTraining.length === 0) {
+      doc.text("Sin información registrada.");
+    } else {
+      internalTraining.forEach((item: any) => {
+        doc.font("Helvetica-Bold").text(`${item.course_code || ""} - ${item.course_name || ""}`);
+        doc.font("Helvetica").text(
+          `Fecha inicial: ${formatDate(item.initial_date)} | Refrendo más reciente: ${formatDate(item.latest_renewal_date)}`
+        );
+        doc.moveDown(0.4);
       });
+    }
 
-      doc.moveDown(0.5);
+    sectionTitle("Capacitación Externa");
+
+    if (externalTraining.length === 0) {
+      doc.text("Sin información registrada.");
+    } else {
+      externalTraining.forEach((item: any) => {
+        doc.font("Helvetica-Bold").text(item.course_name || "");
+        doc.font("Helvetica").text(
+          `Agente capacitador: ${item.training_provider || ""} | Fecha: ${item.training_date || ""}`
+        );
+        doc.moveDown(0.4);
+      });
+    }
+
+    sectionTitle("Experiencia Laboral");
+
+    if (workExperience.length === 0) {
+      doc.text("Sin información registrada.");
+    } else {
+      workExperience.forEach((work: any) => {
+        doc.font("Helvetica-Bold").text(`${work.period || ""} | ${work.company || ""}`);
+        doc.font("Helvetica").text(`Puesto: ${work.position || ""}`);
+
+        work.activities.forEach((act: any) => {
+          doc.text(`• ${act.activity}`, {
+            indent: 15,
+            paragraphGap: 3,
+          });
+        });
+
+        doc.moveDown(0.6);
+      });
+    }
+
+    doc.moveDown(2);
+
+    doc.fontSize(8).text("COPE System | Versión de base de datos: BD 2026-1T | Generado automáticamente", {
+      align: "center",
     });
 
     doc.end();
