@@ -10,6 +10,7 @@ import workExperienceActivityRoutes from "./routes/workExperienceActivity.routes
 import cvRoutes from "./routes/cv.routes";
 import cvPdfRoutes from "./routes/cvPdf.routes";
 import importRoutes from "./routes/import.routes";
+import dashboardRoutes from "./routes/dashboard.routes";
 
 const app = express();
 
@@ -26,5 +27,6 @@ app.use("/api/work-experience-activities", workExperienceActivityRoutes);
 app.use("/api", cvRoutes);
 app.use("/api", cvPdfRoutes);
 app.use("/api/import", importRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 
 export default app;
