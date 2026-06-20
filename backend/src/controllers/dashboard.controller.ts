@@ -64,10 +64,10 @@ export const getEmployeesByWorkCenter = async (req: Request, res: Response) => {
   try {
     const [rows]: any = await db.query(`
       SELECT
-        COALESCE(department, 'No Work Center') AS workCenter,
+        COALESCE(NULLIF(TRIM(department), ''), 'Others') AS workCenter,
         COUNT(*) AS total
       FROM employees
-      GROUP BY department
+      GROUP BY COALESCE(NULLIF(TRIM(department), ''), 'Others')
       ORDER BY total DESC
     `);
 

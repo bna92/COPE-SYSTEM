@@ -33,39 +33,45 @@ export default function EmployeeDetailPage() {
 
   if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-100">
-        <h2 className="text-xl font-semibold text-slate-700">Cargando CV...</h2>
-      </main>
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <h2 className="text-lg md:text-xl font-semibold text-slate-700">
+          Cargando CV...
+        </h2>
+      </div>
     );
   }
 
   if (!cv) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-100">
-        <h2 className="text-xl font-semibold text-red-600">
+      <div className="flex min-h-[60vh] items-center justify-center px-4 text-center">
+        <h2 className="text-lg md:text-xl font-semibold text-red-600">
           No se encontró información del empleado.
         </h2>
-      </main>
+      </div>
     );
   }
 
   const { employee } = cv;
 
   return (
-    <main className="min-h-screen bg-slate-100 px-6 py-8">
-      <section className="mx-auto max-w-7xl space-y-6">
-        <div className="flex flex-col justify-between gap-4 rounded-2xl bg-white p-6 shadow-sm md:flex-row md:items-center">
-          <div>
-            <Link to="/" className="text-sm font-semibold text-blue-600 hover:text-blue-800">
-              ← Volver a empleados
+    <div className="space-y-6 overflow-x-hidden">
+      <section className="rounded-2xl bg-white p-5 md:p-6 shadow-sm border border-slate-200">
+        <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-center">
+          <div className="min-w-0">
+            <Link
+              to="/employees"
+              className="text-sm font-semibold text-blue-600 hover:text-blue-800"
+            >
+              ← Back to employees
             </Link>
 
-            <h1 className="mt-4 text-4xl font-bold text-slate-900">
+            <h1 className="mt-4 text-2xl md:text-4xl font-bold text-slate-900 break-words">
               {employee.full_name}
             </h1>
 
-            <p className="mt-2 text-slate-500">
-              {employee.position || "Sin puesto"} · {employee.company}
+            <p className="mt-2 text-sm md:text-base text-slate-500">
+              {employee.position || "No position"} ·{" "}
+              {employee.company || "No company"}
             </p>
           </div>
 
@@ -73,95 +79,142 @@ export default function EmployeeDetailPage() {
             href={getEmployeeCVPdfUrl(String(employee.id))}
             target="_blank"
             rel="noreferrer"
-            className="rounded-xl bg-blue-600 px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-blue-700"
+            className="w-full lg:w-auto rounded-xl bg-blue-600 px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-blue-700"
           >
-            Abrir PDF
+            Open PDF
           </a>
         </div>
+      </section>
 
-        <div className="grid gap-4 md:grid-cols-4">
-          <div className="rounded-2xl bg-white p-5 shadow-sm">
-            <p className="text-sm text-slate-500">Código</p>
-            <p className="mt-1 text-xl font-bold text-slate-900">{employee.employee_code}</p>
-          </div>
-
-          <div className="rounded-2xl bg-white p-5 shadow-sm">
-            <p className="text-sm text-slate-500">Departamento</p>
-            <p className="mt-1 font-semibold text-slate-900">{employee.department || "N/A"}</p>
-          </div>
-
-          <div className="rounded-2xl bg-white p-5 shadow-sm">
-            <p className="text-sm text-slate-500">Profesión</p>
-            <p className="mt-1 font-semibold text-slate-900">{employee.profession || "N/A"}</p>
-          </div>
-
-          <div className="rounded-2xl bg-white p-5 shadow-sm">
-            <p className="text-sm text-slate-500">Empresa</p>
-            <p className="mt-1 font-semibold text-slate-900">{employee.company || "N/A"}</p>
-          </div>
+      <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        <div className="rounded-2xl bg-white p-5 shadow-sm border border-slate-200">
+          <p className="text-sm text-slate-500">Code</p>
+          <p className="mt-1 text-xl font-bold text-slate-900">
+            {employee.employee_code}
+          </p>
         </div>
 
-        <section className="rounded-2xl bg-white p-6 shadow-sm">
-          <h2 className="mb-4 text-2xl font-bold text-slate-900">
-            Experiencia relevante
-          </h2>
+        <div className="rounded-2xl bg-white p-5 shadow-sm border border-slate-200">
+          <p className="text-sm text-slate-500">Work Center</p>
+          <p className="mt-1 font-semibold text-slate-900">
+            {employee.department || "N/A"}
+          </p>
+        </div>
 
+        <div className="rounded-2xl bg-white p-5 shadow-sm border border-slate-200">
+          <p className="text-sm text-slate-500">Profession</p>
+          <p className="mt-1 font-semibold text-slate-900">
+            {employee.profession || "N/A"}
+          </p>
+        </div>
+
+        <div className="rounded-2xl bg-white p-5 shadow-sm border border-slate-200">
+          <p className="text-sm text-slate-500">Company</p>
+          <p className="mt-1 font-semibold text-slate-900">
+            {employee.company || "N/A"}
+          </p>
+        </div>
+      </section>
+
+      <section className="rounded-2xl bg-white p-5 md:p-6 shadow-sm border border-slate-200">
+        <h2 className="mb-4 text-xl md:text-2xl font-bold text-slate-900">
+          Relevant Experience
+        </h2>
+
+        {cv.relevantExperience.length > 0 ? (
           <div className="space-y-3">
             {cv.relevantExperience.map((item) => (
-              <p key={item.order_number} className="rounded-xl bg-slate-50 p-4 text-sm leading-6 text-slate-700">
+              <p
+                key={item.order_number}
+                className="rounded-xl bg-slate-50 p-4 text-sm leading-6 text-slate-700"
+              >
                 {item.description}
               </p>
             ))}
           </div>
-        </section>
+        ) : (
+          <p className="text-sm text-slate-500">
+            No relevant experience registered.
+          </p>
+        )}
+      </section>
 
-        <section className="rounded-2xl bg-white p-6 shadow-sm">
-          <h2 className="mb-4 text-2xl font-bold text-slate-900">
-            Capacitación interna
-          </h2>
+      <section className="rounded-2xl bg-white p-5 md:p-6 shadow-sm border border-slate-200">
+        <h2 className="mb-4 text-xl md:text-2xl font-bold text-slate-900">
+          Internal Training
+        </h2>
 
-          <div className="grid gap-4 md:grid-cols-2">
+        {cv.internalTraining.length > 0 ? (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {cv.internalTraining.map((item) => (
-              <div key={item.id} className="rounded-xl border border-slate-200 p-4">
-                <p className="text-sm font-bold text-slate-900">
+              <div
+                key={item.id}
+                className="rounded-xl border border-slate-200 p-4"
+              >
+                <p className="text-sm font-bold text-slate-900 break-words">
                   {item.course_code} - {item.course_name}
                 </p>
 
                 <p className="mt-2 text-xs text-slate-500">
-                  Fecha inicial: {formatDate(item.initial_date)} · Refrendo:{" "}
-                  {formatDate(item.latest_renewal_date)}
+                  Initial date: {formatDate(item.initial_date)}
+                </p>
+
+                <p className="mt-1 text-xs text-slate-500">
+                  Latest renewal: {formatDate(item.latest_renewal_date)}
                 </p>
               </div>
             ))}
           </div>
-        </section>
+        ) : (
+          <p className="text-sm text-slate-500">
+            No internal training registered.
+          </p>
+        )}
+      </section>
 
-        <section className="rounded-2xl bg-white p-6 shadow-sm">
-          <h2 className="mb-4 text-2xl font-bold text-slate-900">
-            Capacitación externa
-          </h2>
+      <section className="rounded-2xl bg-white p-5 md:p-6 shadow-sm border border-slate-200">
+        <h2 className="mb-4 text-xl md:text-2xl font-bold text-slate-900">
+          External Training
+        </h2>
 
+        {cv.externalTraining.length > 0 ? (
           <div className="space-y-4">
             {cv.externalTraining.map((item, index) => (
-              <div key={index} className="rounded-xl border border-slate-200 p-4">
-                <p className="font-bold text-slate-900">{item.course_name}</p>
+              <div
+                key={index}
+                className="rounded-xl border border-slate-200 p-4"
+              >
+                <p className="font-bold text-slate-900 break-words">
+                  {item.course_name}
+                </p>
+
                 <p className="mt-1 text-sm text-slate-500">
-                  {item.training_provider} · {item.training_date}
+                  {item.training_provider || "N/A"} ·{" "}
+                  {formatDate(item.training_date)}
                 </p>
               </div>
             ))}
           </div>
-        </section>
+        ) : (
+          <p className="text-sm text-slate-500">
+            No external training registered.
+          </p>
+        )}
+      </section>
 
-        <section className="rounded-2xl bg-white p-6 shadow-sm">
-          <h2 className="mb-4 text-2xl font-bold text-slate-900">
-            Experiencia laboral
-          </h2>
+      <section className="rounded-2xl bg-white p-5 md:p-6 shadow-sm border border-slate-200">
+        <h2 className="mb-4 text-xl md:text-2xl font-bold text-slate-900">
+          Work Experience
+        </h2>
 
+        {cv.workExperience.length > 0 ? (
           <div className="space-y-6">
             {cv.workExperience.map((work) => (
-              <div key={work.id} className="rounded-xl border border-slate-200 p-5">
-                <h3 className="text-lg font-bold text-slate-900">
+              <div
+                key={work.id}
+                className="rounded-xl border border-slate-200 p-5"
+              >
+                <h3 className="text-base md:text-lg font-bold text-slate-900 break-words">
                   {work.period} · {work.company}
                 </h3>
 
@@ -171,7 +224,10 @@ export default function EmployeeDetailPage() {
 
                 <div className="mt-4 space-y-2">
                   {work.activities.map((activity) => (
-                    <p key={activity.order_number} className="text-sm leading-6 text-slate-700">
+                    <p
+                      key={activity.order_number}
+                      className="text-sm leading-6 text-slate-700"
+                    >
                       • {activity.activity}
                     </p>
                   ))}
@@ -179,8 +235,12 @@ export default function EmployeeDetailPage() {
               </div>
             ))}
           </div>
-        </section>
+        ) : (
+          <p className="text-sm text-slate-500">
+            No work experience registered.
+          </p>
+        )}
       </section>
-    </main>
+    </div>
   );
 }

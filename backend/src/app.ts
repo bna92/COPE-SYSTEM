@@ -11,6 +11,7 @@ import cvRoutes from "./routes/cv.routes";
 import cvPdfRoutes from "./routes/cvPdf.routes";
 import importRoutes from "./routes/import.routes";
 import dashboardRoutes from "./routes/dashboard.routes";
+import reportRoutes from "./routes/report.routes";
 
 const app = express();
 
@@ -28,5 +29,6 @@ app.use("/api", cvRoutes);
 app.use("/api", cvPdfRoutes);
 app.use("/api/import", importRoutes);
 app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/reports", reportRoutes);
 
 export default app;

@@ -20,7 +20,26 @@ import {
 import type { WorkCenterStats } from "../types/workCenterStats";
 import type { CompanyStats } from "../types/companyStats";
 
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkScreen = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkScreen();
+    window.addEventListener("resize", checkScreen);
+
+    return () => window.removeEventListener("resize", checkScreen);
+  }, []);
+
+  return isMobile;
+}
+
 export default function DashboardPage() {
+  const isMobile = useIsMobile();
+
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -168,60 +187,165 @@ export default function DashboardPage() {
       <div className="bg-white rounded-xl border border-slate-200 p-5 md:p-6">
         <h2 className="text-lg font-semibold mb-4">Employees by Company</h2>
 
-        <div className="h-72">
+        <div className="h-[120px] md:h-[700px]">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={companyStats}
-              margin={{ top: 10, right: 20, left: -20, bottom: 20 }}
-            >
-              <XAxis
-                dataKey="company"
-                interval={0}
-                height={40}
-                tick={{ fontSize: 12 }}
-              />
-              <YAxis allowDecimals={false} />
-              <Tooltip />
-              <Bar
-                dataKey="total"
-                fill="#2563eb"
-                radius={[6, 6, 0, 0]}
-                barSize={40}
-              />
-            </BarChart>
+            {isMobile ? (
+              <div className="h-[320px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={companyStats}
+                    layout="vertical"
+                    margin={{
+                      top: 10,
+                      right: 10,
+                      left: -40,
+                      bottom: 10,
+                    }}
+                  >
+                    <XAxis
+                      type="number"
+                      allowDecimals={false}
+                      domain={[0, 150]}
+                      ticks={[0, 25, 50, 75, 100, 125, 150]}
+                      tick={{ fontSize: 10 }}
+                    />
+
+                    <YAxis
+                      type="category"
+                      dataKey="company"
+                      width={120}
+                      interval={0}
+                      tick={{ fontSize: 10 }}
+                    />
+
+                    <Tooltip />
+
+                    <Bar
+                      dataKey="total"
+                      fill="#2563eb"
+                      radius={[0, 6, 6, 0]}
+                      maxBarSize={18}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <BarChart data={companyStats} barCategoryGap="120%">
+                <XAxis
+                  dataKey="company"
+                  angle={-90}
+                  textAnchor="end"
+                  interval={0}
+                  height={180}
+                  tick={{ fontSize: 11 }}
+                  tickMargin={25}
+                  padding={{
+                    left: 0,
+                    right: 1340,
+                  }}
+                />
+
+                <YAxis
+                  allowDecimals={false}
+                  domain={[0, 150]}
+                  ticks={[0, 25, 50, 75, 100, 125, 150]}
+                />
+
+                <Tooltip />
+
+                <Bar
+                  dataKey="total"
+                  fill="#2563eb"
+                  radius={[6, 6, 0, 0]}
+                  barSize={40}
+                />
+              </BarChart>
+            )}
           </ResponsiveContainer>
         </div>
       </div>
 
       <div className="bg-white rounded-xl border border-slate-200 p-5 md:p-6">
-        <h2 className="text-lg font-semibold mb-4">Employees by Work Center</h2>
+        <h2 className="text-lg font-semibold mb-4">
+          Employees by Work Center
+        </h2>
 
-        <div className="h-[520px] sm:h-[620px] md:h-[700px]">
+        <div className="h-[520px] md:h-[700px]">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={workCenterStats}
-              margin={{ top: 10, right: 30, left: 0, bottom: 150 }}
-            >
-              <XAxis
-                dataKey="workCenter"
-                angle={-90}
-                textAnchor="end"
-                interval={0}
-                height={180}
-                tick={{ fontSize: 11 }}
-                tickMargin={10}
-              />
+            {isMobile ? (
+              <div className="h-[900px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={workCenterStats}
+                    layout="vertical"
+                    margin={{
+                      top: 10,
+                      right: 10,
+                      left: -40,
+                      bottom: 10,
+                    }}
+                  >
+                    <XAxis
+                      type="number"
+                      allowDecimals={false}
+                      ticks={[0, 5, 10, 15, 20, 25]}
+                      tick={{ fontSize: 10 }}
+                    />
 
-              <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
-              <Tooltip />
+                    <YAxis
+                      type="category"
+                      dataKey="workCenter"
+                      width={120}
+                      interval={0}
+                      tick={{ fontSize: 10 }}
+                    />
 
-              <Bar
-                dataKey="total"
-                fill="#2563eb"
-                radius={[6, 6, 0, 0]}
-                maxBarSize={32}
-              />
-            </BarChart>
+                    <Tooltip />
+
+                    <Bar
+                      dataKey="total"
+                      fill="#2563eb"
+                      radius={[0, 6, 6, 0]}
+                      maxBarSize={18}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <BarChart
+                data={workCenterStats}
+                margin={{ top: 10, right: 30, left: 0, bottom: 150 }}
+              >
+                <XAxis
+                  dataKey="workCenter"
+                  angle={-90}
+                  textAnchor="end"
+                  interval={0}
+                  height={80}
+                  tick={{ fontSize: 15 }}
+                  tickMargin={25}
+                  padding={{
+                    left: 0,
+                    right: 200,
+                  }}
+                />
+
+                <YAxis
+                  allowDecimals={false}
+                  tick={{ fontSize: 15 }}
+                  ticks={[0, 5, 10, 15, 20, 25]}
+                />
+
+                <Tooltip />
+
+                <Bar
+                  dataKey="total"
+                  fill="#2563eb"
+                  radius={[6, 6, 0, 0]}
+                  maxBarSize={32}
+                />
+              </BarChart>
+            )}
           </ResponsiveContainer>
         </div>
       </div>

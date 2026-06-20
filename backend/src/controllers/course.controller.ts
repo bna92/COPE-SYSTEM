@@ -3,7 +3,28 @@ import { db } from "../config/db";
 
 export const getCourses = async (req: Request, res: Response) => {
   try {
-    const [rows] = await db.query("SELECT * FROM courses");
+    const [rows] = await db.query(`
+      SELECT
+        c.id,
+        c.course_code,
+        c.course_name,
+        c.course_revision,
+        c.created_at,
+        c.excel_course_id,
+        COUNT(DISTINCT it.employee_id) AS trained_employees
+      FROM courses c
+      LEFT JOIN internal_training it
+        ON it.course_id = c.id
+      GROUP BY
+        c.id,
+        c.course_code,
+        c.course_name,
+        c.course_revision,
+        c.created_at,
+        c.excel_course_id
+      ORDER BY c.course_code ASC
+    `);
+
     res.json(rows);
   } catch (error) {
     res.status(500).json({ message: "Error al obtener cursos", error });
