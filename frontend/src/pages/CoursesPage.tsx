@@ -26,7 +26,7 @@ export default function CoursesPage() {
   const filteredCourses = courses.filter((course) =>
     `${course.course_code} ${course.course_name} ${course.course_revision ?? ""}`
       .toLowerCase()
-      .includes(search.toLowerCase())
+      .includes(search.toLowerCase()),
   );
 
   if (loading) {
@@ -118,6 +118,13 @@ export default function CoursesPage() {
                 {course.excel_course_id ?? "N/A"}
               </p>
             </div>
+
+            <Link
+              to={`/courses/${course.id}`}
+              className="mt-5 block rounded-lg bg-blue-600 px-4 py-2 text-center text-sm font-semibold text-white hover:bg-blue-700 transition"
+            >
+              View Employees
+            </Link>
           </article>
         ))}
 
@@ -137,8 +144,15 @@ export default function CoursesPage() {
                 <th className="px-5 py-4 text-sm font-semibold">Code</th>
                 <th className="px-5 py-4 text-sm font-semibold">Course</th>
                 <th className="px-5 py-4 text-sm font-semibold">Revision</th>
-                <th className="px-5 py-4 text-sm font-semibold">Trained Employees</th>
-                <th className="px-5 py-4 text-sm font-semibold">Excel Course ID</th>
+                <th className="px-5 py-4 text-sm font-semibold">
+                  Trained Employees
+                </th>
+                <th className="px-5 py-4 text-sm font-semibold">
+                  Excel Course ID
+                </th>
+                <th className="px-5 py-4 text-sm font-semibold text-center">
+                  Employees
+                </th>
               </tr>
             </thead>
 
@@ -150,9 +164,12 @@ export default function CoursesPage() {
                   </td>
 
                   <td className="px-5 py-4">
-                    <p className="font-medium text-slate-900">
+                    <Link
+                      to={`/courses/${course.id}`}
+                      className="font-medium text-slate-900 hover:text-blue-600 transition"
+                    >
                       {course.course_name}
-                    </p>
+                    </Link>
                   </td>
 
                   <td className="px-5 py-4 text-sm text-slate-600">
@@ -166,13 +183,22 @@ export default function CoursesPage() {
                   <td className="px-5 py-4 text-sm text-slate-600">
                     {course.excel_course_id ?? "N/A"}
                   </td>
+
+                  <td className="px-5 py-4 text-center">
+                    <Link
+                      to={`/courses/${course.id}`}
+                      className="rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-blue-700"
+                    >
+                      View
+                    </Link>
+                  </td>
                 </tr>
               ))}
 
               {filteredCourses.length === 0 && (
                 <tr>
                   <td
-                    colSpan={5}
+                    colSpan={6}
                     className="px-5 py-10 text-center text-slate-500"
                   >
                     No courses found.

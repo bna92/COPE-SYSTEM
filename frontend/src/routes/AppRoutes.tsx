@@ -9,6 +9,7 @@ import CoursesPage from "../pages/CoursesPage";
 import ReportsPage from "../pages/ReportsPage";
 import SettingsPage from "../pages/SettingsPage";
 import ExpiredTrainingReportPage from "../pages/ExpiredTrainingReportPage";
+import CourseDetailPage from "../pages/CourseDetailPage";
 
 export default function AppRoutes() {
   return (
@@ -30,6 +31,8 @@ export default function AppRoutes() {
         <Route path="/reports" element={<ReportsPage />} />
 
         <Route path="/settings" element={<SettingsPage />} />
+
+        <Route path="/courses/:id" element={<CourseDetailPage />} />
       </Route>
     </Routes>
   );

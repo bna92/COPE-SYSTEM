@@ -7,3 +7,13 @@ export interface Course {
     excel_course_id: number | null;
     trained_employees: number;
 }
+
+export interface CourseEmployee {
+  id: number;
+  employee_code: string;
+  full_name: string;
+  company: string | null;
+  work_center: string | null;
+  initial_date: string | null;
+  next_renewal: string | null;
+}

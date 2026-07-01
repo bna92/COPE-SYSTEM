@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import type { ApexOptions } from "apexcharts";
+import Chart from "react-apexcharts";
 import type { DashboardStats } from "../types/dashboard";
 import { FaUsers, FaBook, FaGraduationCap, FaAward } from "react-icons/fa";
 import { Link } from "react-router-dom";
@@ -9,23 +11,25 @@ import {
   getEmployeesByWorkCenter,
   getEmployeesByCompany,
 } from "../services/dashboardService";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
 import type { WorkCenterStats } from "../types/workCenterStats";
 import type { CompanyStats } from "../types/companyStats";
 
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(false);
+function useScreenSize() {
+  const [screen, setScreen] = useState({
+    isMobile: false,
+    isLaptop: false,
+    isDesktop: false,
+  });
 
   useEffect(() => {
     const checkScreen = () => {
-      setIsMobile(window.innerWidth < 768);
+      const width = window.innerWidth;
+
+      setScreen({
+        isMobile: width < 768,
+        isLaptop: width >= 768 && width < 1536,
+        isDesktop: width >= 1536,
+      });
     };
 
     checkScreen();
@@ -34,11 +38,11 @@ function useIsMobile() {
     return () => window.removeEventListener("resize", checkScreen);
   }, []);
 
-  return isMobile;
+  return screen;
 }
 
 export default function DashboardPage() {
-  const isMobile = useIsMobile();
+  const { isMobile, isLaptop, isDesktop } = useScreenSize();
 
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -87,6 +91,128 @@ export default function DashboardPage() {
       title: "External Training",
       value: stats?.externalTraining ?? 0,
       icon: <FaAward size={24} />,
+    },
+  ];
+
+  const companyLabels = companyStats.map((item) => item.company || "N/A");
+  const companyValues = companyStats.map((item) => Number(item.total));
+
+  const workCenterLabels = workCenterStats.map(
+    (item) => item.workCenter || "N/A"
+  );
+  const workCenterValues = workCenterStats.map((item) => Number(item.total));
+
+  const companyChartHeight = isMobile ? 230 : isLaptop ? 280 : 320;
+
+  const workCenterChartHeight = isMobile
+    ? Math.max(420, workCenterStats.length * 42)
+    : isLaptop
+    ? Math.max(520, workCenterStats.length * 38)
+    : Math.max(560, workCenterStats.length * 34);
+
+  const companyOptions: ApexOptions = {
+    chart: {
+      type: "bar",
+      toolbar: { show: false },
+      fontFamily: "inherit",
+    },
+    plotOptions: {
+      bar: {
+        horizontal: true,
+        borderRadius: 6,
+        barHeight: isMobile ? "45%" : "50%",
+      },
+    },
+    dataLabels: {
+      enabled: false,
+    },
+    xaxis: {
+      categories: companyLabels,
+      labels: {
+        style: {
+          fontSize: isMobile ? "10px" : "12px",
+          colors: "#64748b",
+        },
+      },
+    },
+    yaxis: {
+      labels: {
+        maxWidth: isMobile ? 130 : 220,
+        style: {
+          fontSize: isMobile ? "10px" : "12px",
+          colors: "#334155",
+        },
+      },
+    },
+    grid: {
+      borderColor: "#e2e8f0",
+      strokeDashArray: 4,
+    },
+    tooltip: {
+      y: {
+        formatter: (value) => `${value} employees`,
+      },
+    },
+    colors: ["#2563eb"],
+  };
+
+  const companySeries = [
+    {
+      name: "Employees",
+      data: companyValues,
+    },
+  ];
+
+  const workCenterOptions: ApexOptions = {
+    chart: {
+      type: "bar",
+      toolbar: { show: false },
+      fontFamily: "inherit",
+    },
+    plotOptions: {
+      bar: {
+        horizontal: true,
+        borderRadius: 6,
+        barHeight: isMobile ? "45%" : "55%",
+      },
+    },
+    dataLabels: {
+      enabled: false,
+    },
+    xaxis: {
+      categories: workCenterLabels,
+      labels: {
+        style: {
+          fontSize: isMobile ? "10px" : "12px",
+          colors: "#64748b",
+        },
+      },
+    },
+    yaxis: {
+      labels: {
+        maxWidth: isMobile ? 130 : isLaptop ? 180 : 220,
+        style: {
+          fontSize: isMobile ? "10px" : isLaptop ? "11px" : "12px",
+          colors: "#334155",
+        },
+      },
+    },
+    grid: {
+      borderColor: "#e2e8f0",
+      strokeDashArray: 4,
+    },
+    tooltip: {
+      y: {
+        formatter: (value) => `${value} employees`,
+      },
+    },
+    colors: ["#2563eb"],
+  };
+
+  const workCenterSeries = [
+    {
+      name: "Employees",
+      data: workCenterValues,
     },
   ];
 
@@ -187,82 +313,12 @@ export default function DashboardPage() {
       <div className="bg-white rounded-xl border border-slate-200 p-5 md:p-6">
         <h2 className="text-lg font-semibold mb-4">Employees by Company</h2>
 
-        <div className="h-[120px] md:h-[700px]">
-          <ResponsiveContainer width="100%" height="100%">
-            {isMobile ? (
-              <div className="h-[320px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={companyStats}
-                    layout="vertical"
-                    margin={{
-                      top: 10,
-                      right: 10,
-                      left: -40,
-                      bottom: 10,
-                    }}
-                  >
-                    <XAxis
-                      type="number"
-                      allowDecimals={false}
-                      domain={[0, 150]}
-                      ticks={[0, 25, 50, 75, 100, 125, 150]}
-                      tick={{ fontSize: 10 }}
-                    />
-
-                    <YAxis
-                      type="category"
-                      dataKey="company"
-                      width={120}
-                      interval={0}
-                      tick={{ fontSize: 10 }}
-                    />
-
-                    <Tooltip />
-
-                    <Bar
-                      dataKey="total"
-                      fill="#2563eb"
-                      radius={[0, 6, 6, 0]}
-                      maxBarSize={18}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            ) : (
-              <BarChart data={companyStats} barCategoryGap="120%">
-                <XAxis
-                  dataKey="company"
-                  angle={-90}
-                  textAnchor="end"
-                  interval={0}
-                  height={180}
-                  tick={{ fontSize: 11 }}
-                  tickMargin={25}
-                  padding={{
-                    left: 0,
-                    right: 1340,
-                  }}
-                />
-
-                <YAxis
-                  allowDecimals={false}
-                  domain={[0, 150]}
-                  ticks={[0, 25, 50, 75, 100, 125, 150]}
-                />
-
-                <Tooltip />
-
-                <Bar
-                  dataKey="total"
-                  fill="#2563eb"
-                  radius={[6, 6, 0, 0]}
-                  barSize={40}
-                />
-              </BarChart>
-            )}
-          </ResponsiveContainer>
-        </div>
+        <Chart
+          options={companyOptions}
+          series={companySeries}
+          type="bar"
+          height={companyChartHeight}
+        />
       </div>
 
       <div className="bg-white rounded-xl border border-slate-200 p-5 md:p-6">
@@ -270,84 +326,12 @@ export default function DashboardPage() {
           Employees by Work Center
         </h2>
 
-        <div className="h-[520px] md:h-[700px]">
-          <ResponsiveContainer width="100%" height="100%">
-            {isMobile ? (
-              <div className="h-[900px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={workCenterStats}
-                    layout="vertical"
-                    margin={{
-                      top: 10,
-                      right: 10,
-                      left: -40,
-                      bottom: 10,
-                    }}
-                  >
-                    <XAxis
-                      type="number"
-                      allowDecimals={false}
-                      ticks={[0, 5, 10, 15, 20, 25]}
-                      tick={{ fontSize: 10 }}
-                    />
-
-                    <YAxis
-                      type="category"
-                      dataKey="workCenter"
-                      width={120}
-                      interval={0}
-                      tick={{ fontSize: 10 }}
-                    />
-
-                    <Tooltip />
-
-                    <Bar
-                      dataKey="total"
-                      fill="#2563eb"
-                      radius={[0, 6, 6, 0]}
-                      maxBarSize={18}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            ) : (
-              <BarChart
-                data={workCenterStats}
-                margin={{ top: 10, right: 30, left: 0, bottom: 150 }}
-              >
-                <XAxis
-                  dataKey="workCenter"
-                  angle={-90}
-                  textAnchor="end"
-                  interval={0}
-                  height={80}
-                  tick={{ fontSize: 15 }}
-                  tickMargin={25}
-                  padding={{
-                    left: 0,
-                    right: 200,
-                  }}
-                />
-
-                <YAxis
-                  allowDecimals={false}
-                  tick={{ fontSize: 15 }}
-                  ticks={[0, 5, 10, 15, 20, 25]}
-                />
-
-                <Tooltip />
-
-                <Bar
-                  dataKey="total"
-                  fill="#2563eb"
-                  radius={[6, 6, 0, 0]}
-                  maxBarSize={32}
-                />
-              </BarChart>
-            )}
-          </ResponsiveContainer>
-        </div>
+        <Chart
+          options={workCenterOptions}
+          series={workCenterSeries}
+          type="bar"
+          height={workCenterChartHeight}
+        />
       </div>
     </div>
   );
